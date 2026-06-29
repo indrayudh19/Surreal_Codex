@@ -639,6 +639,7 @@
             { text: '  help                              — display this help index', cls: 'silver' },
             { text: '  status                            — system & anomaly status', cls: 'silver' },
             { text: '  access.artefact/resting_place      — enter the Resting Place', cls: 'silver' },
+            { text: '  access.artefact/void               — enter the Void', cls: 'silver' },
             { text: '  access.artefact/list               — list known artefact locations', cls: 'silver' },
             { text: '  whoami                             — display current operator', cls: 'silver' },
             { text: '  clear                              — clear terminal output', cls: 'silver' },
@@ -675,6 +676,17 @@
             { text: 'REDIRECTING...', cls: 'gold', action: 'navigate', target: 'resting_place.html' },
           ];
         },
+        'access.artefact/void': function() {
+          return [
+            { text: '', cls: '' },
+            { text: 'ACCESSING ARTEFACT LOCATION: VOID...', cls: '' },
+            { text: '[OK] COORDINATES DISSOLVED', cls: 'dim' },
+            { text: '[OK] LIGHT SOURCES TERMINATED', cls: 'dim' },
+            { text: '[!!] WARNING: NO RETURN PATH GUARANTEED', cls: 'crimson' },
+            { text: '', cls: '' },
+            { text: 'ENTERING THE VOID...', cls: 'gold', action: 'navigate', target: 'void.html' },
+          ];
+        },
         'access.artefact/list': function() {
           return [
             { text: '', cls: '' },
@@ -682,6 +694,7 @@
             { text: '═══════════════════════════════════════════════════', cls: 'dim' },
             { text: '', cls: '' },
             { text: '  [ACCESSIBLE]  resting_place       — The place where knights rest between patrols', cls: 'silver' },
+            { text: '  [ACCESSIBLE]  void                — The place where everything ends', cls: 'silver' },
             { text: '  [LOCKED]      mirror_hall          — ACCESS DENIED: CLEARANCE LEVEL 5 REQUIRED', cls: 'crimson' },
             { text: '  [LOCKED]      the_seventh_tuesday  — ACCESS DENIED: TEMPORAL COORDINATES UNSTABLE', cls: 'crimson' },
             { text: '  [LOCKED]      compass_room         — ACCESS DENIED: ROOM IS POINTING INWARD', cls: 'crimson' },

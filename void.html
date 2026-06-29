@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The Void — You finally have what you wanted.">
+  <title>The Void — The Order of the Hollow Moon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    /* ========================================
+       VOID CONTAINER
+       ======================================== */
+    .void-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+      padding: 40px;
+      position: relative;
+    }
+
+    /* ========================================
+       GIF SECTION (LEFT)
+       ======================================== */
+    .void-gif-section {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .void-gif {
+      max-height: 70vh;
+      max-width: 40vw;
+      object-fit: contain;
+      /* Subtle green-tinted glow around the GIF */
+      filter: drop-shadow(0 0 20px rgba(26, 255, 110, 0.15))
+              drop-shadow(0 0 60px rgba(26, 255, 110, 0.05));
+    }
+
+    /* ========================================
+       TEXT SECTION (RIGHT)
+       ======================================== */
+    .void-text-section {
+      flex: 0 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .void-message {
+      font-family: 'VT323', monospace;
+      font-size: clamp(28px, 4vw, 56px);
+      font-weight: bold;
+      color: #1aff6e;
+      text-shadow:
+        0 0 6px rgba(26, 255, 110, 0.8),
+        0 0 20px rgba(26, 255, 110, 0.4),
+        0 0 40px rgba(26, 255, 110, 0.2),
+        0 0 80px rgba(26, 255, 110, 0.1);
+      line-height: 1.5;
+      max-width: 400px;
+      letter-spacing: 0.05em;
+      /* Typewriter cursor blink on last line */
+      border-right: 3px solid #1aff6e;
+      padding-right: 12px;
+      animation: void-cursor-blink 1s step-end infinite, void-text-flicker 4s ease-in-out infinite;
+      /* Start hidden for typewriter effect */
+      opacity: 0;
+    }
+
+    @keyframes void-cursor-blink {
+      0%, 50% { border-right-color: #1aff6e; }
+      51%, 100% { border-right-color: transparent; }
+    }
+
+    @keyframes void-text-flicker {
+      0%, 100% { opacity: 1; }
+      92% { opacity: 1; }
+      93% { opacity: 0.85; }
+      94% { opacity: 1; }
+      96% { opacity: 0.9; }
+      97% { opacity: 1; }
+    }
+
+    /* ========================================
+       SCANLINE OVERLAY
+       ======================================== */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 20, 0, 0.06) 2px,
+        rgba(0, 20, 0, 0.06) 3px
+      );
+      pointer-events: none;
+      z-index: 10000;
+    }
+
+    /* ========================================
+       VIGNETTE
+       ======================================== */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+    @media (max-width: 768px) {
+      .void-container {
+        flex-direction: column;
+        gap: 30px;
+        padding: 24px;
+      }
+      .void-gif {
+        max-height: 40vh;
+        max-width: 80vw;
+      }
+      .void-message {
+        max-width: 90vw;
+        text-align: center;
+      }
+    }
+
+    /* ========================================
+       REDUCED MOTION
+       ======================================== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+      .void-message {
+        opacity: 1 !important;
+        border-right-color: #1aff6e !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="void-container">
+    <!-- GIF on the left -->
+    <div class="void-gif-section">
+      <img class="void-gif" src="media/dancing_girl.gif" alt="Dancing figure in the void">
+    </div>
+
+    <!-- Text on the right -->
+    <div class="void-text-section">
+      <div class="void-message" id="void-message"></div>
+    </div>
+  </div>
+
+  <script>
+    // Typewriter effect for the void message
+    (function() {
+      var message = 'now you finally have what you wanted.';
+      var el = document.getElementById('void-message');
+      var charIndex = 0;
+
+      // Small delay before text starts appearing
+      setTimeout(function() {
+        el.style.opacity = '1';
+        // Override the flicker animation during typing
+        el.style.animation = 'void-cursor-blink 1s step-end infinite';
+
+        function typeChar() {
+          if (charIndex >= message.length) {
+            // After typing is done, add the flicker animation
+            el.style.animation = 'void-cursor-blink 1s step-end infinite, void-text-flicker 4s ease-in-out infinite';
+            return;
+          }
+          el.textContent += message[charIndex];
+          charIndex++;
+          // Randomise typing speed for realism
+          var speed = 50 + Math.random() * 80;
+          setTimeout(typeChar, speed);
+        }
+        typeChar();
+      }, 800);
+    })();
+  </script>
+
+</body>
+</html>
