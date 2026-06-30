@@ -641,6 +641,7 @@
             { text: '  access.artefact/resting_place      — enter the Resting Place', cls: 'silver' },
             { text: '  access.artefact/void               — enter the Void', cls: 'silver' },
             { text: '  access.artefact/list               — list known artefact locations', cls: 'silver' },
+            { text: '  access.quest/valentry              — descend into the Vale', cls: 'silver' },
             { text: '  whoami                             — display current operator', cls: 'silver' },
             { text: '  clear                              — clear terminal output', cls: 'silver' },
             { text: '  exit                               — close the codex terminal', cls: 'silver' },
@@ -699,7 +700,11 @@
             { text: '  [LOCKED]      the_seventh_tuesday  — ACCESS DENIED: TEMPORAL COORDINATES UNSTABLE', cls: 'crimson' },
             { text: '  [LOCKED]      compass_room         — ACCESS DENIED: ROOM IS POINTING INWARD', cls: 'crimson' },
             { text: '', cls: '' },
-            { text: 'Use: access.artefact/<location_name> to enter.', cls: 'dim' },
+            { text: 'CATALOGUED QUEST PROTOCOLS:', cls: 'gold' },
+            { text: '─────────────────────────────────────', cls: 'dim' },
+            { text: '  [ACCESSIBLE]  valentry            — The Knight\'s Descent into the Vale', cls: 'silver' },
+            { text: '', cls: '' },
+            { text: 'Use: access.artefact/<location_name> or access.quest/<quest_name> to enter.', cls: 'dim' },
             { text: '', cls: '' },
           ];
         },
@@ -719,6 +724,17 @@
         },
         'exit': function() {
           return 'EXIT';
+        },
+        'access.quest/valentry': function() {
+          return [
+            { text: '', cls: '' },
+            { text: '> ACCESSING VALE ENTRY PROTOCOL...', cls: '' },
+            { text: '> THE GROUND BENEATH THE CODEX BEGINS TO SOFTEN.', cls: '' },
+            { text: '[OK] DESCENT COORDINATES LOCKED', cls: 'dim' },
+            { text: '[!!] WARNING: HOSTILES DETECTED BELOW', cls: 'crimson' },
+            { text: '', cls: '' },
+            { text: 'ENTERING THE VALE...', cls: 'gold', action: 'navigate', target: 'valentry.html' },
+          ];
         }
       };
 

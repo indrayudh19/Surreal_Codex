@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vale Entry: The Knight's Descent — An arcade quest of the Order of the Hollow Moon.">
+  <title>Vale Entry: The Knight's Descent — The Order of the Hollow Moon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+
+  <style>
+    /* ========================================
+       CSS VARIABLES (matching site)
+       ======================================== */
+    :root {
+      --void:          #050508;
+      --deep:          #0a0a12;
+      --surface:       #0f0f1a;
+      --surface-raise: #141420;
+      --border:        #1e1e35;
+      --border-glow:   #2a2a55;
+      --moon-silver:   #c8cfe8;
+      --moon-dim:      #7a82a8;
+      --moon-ghost:    #3a4060;
+      --gold:          #c9a84c;
+      --gold-dim:      #7a6230;
+      --crimson:       #8b1a1a;
+      --crimson-glow:  #c02020;
+      --arcade-green:  #1aff6e;
+      --arcade-blue:   #4ab3ff;
+      --glow-gold:  0 0 10px rgba(201, 168, 76, 0.3), 0 0 24px rgba(201, 168, 76, 0.1);
+      --glow-green: 0 0 8px rgba(26, 255, 110, 0.4);
+    }
+
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box; border-radius: 0;
+    }
+
+    body {
+      background: var(--void);
+      color: var(--moon-silver);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow: hidden;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Scanline overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0, 0, 0, 0.04) 2px, rgba(0, 0, 0, 0.04) 3px
+      );
+      pointer-events: none;
+      z-index: 10000;
+    }
+
+    /* ========================================
+       GAME FRAME
+       ======================================== */
+    #game-frame {
+      position: relative;
+      width: 800px;
+      height: 480px;
+      border: 2px solid var(--gold);
+      box-shadow: var(--glow-gold), inset 0 0 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+
+    #game-container canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* ========================================
+       HUD OVERLAY
+       ======================================== */
+    #game-hud {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 14px;
+    }
+
+    #hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hud-hp {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hud-label {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: var(--gold);
+      text-shadow: 0 0 6px rgba(201,168,76,0.4);
+      letter-spacing: 0.1em;
+    }
+
+    .hp-bar-outer {
+      width: 160px;
+      height: 14px;
+      background: var(--void);
+      border: 1px solid var(--gold-dim);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hp-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--crimson), var(--crimson-glow));
+      box-shadow: 0 0 8px rgba(192, 32, 32, 0.4);
+      transition: width 0.3s ease;
+    }
+
+    .hp-text {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--moon-dim);
+    }
+
+    .hud-enemies {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--arcade-green);
+      text-shadow: var(--glow-green);
+      letter-spacing: 0.05em;
+    }
+
+    #hud-bottom {
+      text-align: center;
+    }
+
+    .hud-controls {
+      font-family: 'VT323', monospace;
+      font-size: 15px;
+      color: var(--moon-ghost);
+      letter-spacing: 0.08em;
+      background: rgba(5,5,8,0.5);
+      padding: 3px 12px;
+      display: inline-block;
+    }
+
+    /* ========================================
+       VICTORY OVERLAY
+       ======================================== */
+    #victory-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(5, 5, 8, 0.92);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      animation: victory-fade-in 1s ease forwards;
+    }
+
+    @keyframes victory-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .victory-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .victory-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(28px, 4vw, 48px);
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      text-shadow: var(--glow-gold);
+      animation: victory-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes victory-pulse {
+      0%, 100% { text-shadow: 0 0 10px rgba(201,168,76,0.3), 0 0 24px rgba(201,168,76,0.1); }
+      50% { text-shadow: 0 0 20px rgba(201,168,76,0.5), 0 0 40px rgba(201,168,76,0.2), 0 0 60px rgba(201,168,76,0.1); }
+    }
+
+    .victory-subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      color: var(--moon-dim);
+      max-width: 400px;
+    }
+
+    .victory-item {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: var(--arcade-green);
+      text-shadow: var(--glow-green);
+    }
+
+    .btn-return {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      padding: 12px 28px;
+      background: transparent;
+      cursor: pointer;
+      pointer-events: all;
+      transition: all 0.2s ease;
+      letter-spacing: 0.1em;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      margin-top: 16px;
+    }
+
+    .btn-return:hover {
+      background: rgba(201, 168, 76, 0.08);
+      box-shadow: var(--glow-gold);
+    }
+
+    /* ========================================
+       DEATH FLASH
+       ======================================== */
+    #death-flash {
+      display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(139, 26, 26, 0.3);
+      z-index: 90;
+      pointer-events: none;
+      animation: death-flash-anim 0.6s ease forwards;
+    }
+
+    @keyframes death-flash-anim {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ========================================
+       LOADING SCREEN
+       ======================================== */
+    #loading-screen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: var(--void);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      transition: opacity 0.5s ease;
+    }
+
+    #loading-screen.fade-out {
+      opacity: 0;
+    }
+
+    .loading-text {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--moon-ghost);
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+    }
+
+    .loading-bar-outer {
+      width: 200px;
+      height: 6px;
+      border: 1px solid var(--border);
+      background: var(--void);
+    }
+
+    .loading-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--arcade-green);
+      box-shadow: var(--glow-green);
+      transition: width 0.2s ease;
+    }
+
+    /* ========================================
+       GATE LOCKED INDICATOR
+       ======================================== */
+    .gate-locked-msg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: var(--crimson-glow);
+      text-shadow: 0 0 10px rgba(192, 32, 32, 0.5);
+      pointer-events: none;
+      z-index: 110;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .gate-locked-msg.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Game Frame -->
+  <div id="game-frame">
+    <!-- Loading screen -->
+    <div id="loading-screen">
+      <div class="loading-text">DESCENDING INTO THE VALE...</div>
+      <div class="loading-bar-outer">
+        <div class="loading-bar-fill" id="loading-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- HUD overlay -->
+    <div id="game-hud" style="display:none;">
+      <div id="hud-top">
+        <div class="hud-hp">
+          <span class="hud-label">HP</span>
+          <div class="hp-bar-outer"><div class="hp-bar-fill" id="hp-fill"></div></div>
+          <span class="hp-text" id="hp-text">100 / 100</span>
+        </div>
+        <div class="hud-enemies" id="enemy-counter">FOES: 5</div>
+      </div>
+      <div id="hud-bottom">
+        <span class="hud-controls">&larr; &rarr; MOVE &nbsp;&nbsp; SPACE JUMP &nbsp;&nbsp; Z ATTACK</span>
+      </div>
+    </div>
+
+    <!-- Gate locked message -->
+    <div class="gate-locked-msg" id="gate-locked-msg">GATE LOCKED — DEFEAT ALL FOES</div>
+
+    <!-- Death flash -->
+    <div id="death-flash"></div>
+
+    <!-- Phaser canvas mount -->
+    <div id="game-container"></div>
+  </div>
+
+  <!-- Victory Overlay -->
+  <div id="victory-overlay">
+    <div class="victory-content">
+      <h1 class="victory-title">THE GATE REMEMBERS YOU</h1>
+      <p class="victory-subtitle">The vale opens. The compass turns toward home.</p>
+      <p class="victory-item" id="victory-item-text">+ THE VALE COMPASS added to inventory</p>
+      <button class="btn-return" onclick="window.location.href='index.html'">[ RETURN TO THE CODEX ]</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="vigil.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+  <script>
+  // ================================================================
+  //  VALE ENTRY: THE KNIGHT'S DESCENT — Game Code
+  // ================================================================
+
+  // ===================== CONSTANTS =====================
+  const TILE_SCALE = 2;
+  const TILE_NATIVE = 16;
+  const TILE_SIZE = TILE_NATIVE * TILE_SCALE; // 32
+  const LEVEL_COLS = 150;
+  const LEVEL_ROWS = 15;
+  const WORLD_W = LEVEL_COLS * TILE_SIZE;  // 4800
+  const WORLD_H = LEVEL_ROWS * TILE_SIZE;  // 480
+  const CANVAS_W = 800;
+  const CANVAS_H = 480;
+
+  // Knight
+  const KN_FW = 120, KN_FH = 80;
+  const KN_BODY_W = 30, KN_BODY_H = 50;
+  const KN_BODY_OX = 45, KN_BODY_OY = 26;
+  const KN_ACCEL = 600;
+  const KN_MAX_SPEED = 200;
+  const KN_DRAG = 800;
+  const KN_JUMP_VEL = -420;
+  const KN_GRAVITY = 900;
+  const ATTACK_CD_MS = 400;
+  const INVULN_MS = 500;
+  const DMG_FROM_ENEMY = 15;
+  const ATTACK_RANGE_X = 75;
+  const ATTACK_RANGE_Y = 50;
+
+  // Enemies
+  const SKEL_HP = 3;
+  const GOBLIN_HP = 2;
+  const SKEL_SPEED = 45;
+  const GOBLIN_SPEED = 55;
+  const SKEL_SCALE = 1.8;
+  const GOBLIN_SCALE = 0.7;
+  const PATROL_RANGE = 90;
+  const TOTAL_ENEMIES = 5;
+
+  // Floor row in the 15-row logical grid
+  const FLOOR_ROW = 12;
+  const FLOOR_Y = FLOOR_ROW * TILE_SIZE; // 384
+
+  // Tile indices from the dungeon tileset (15 cols × 18 rows)
+  function tileVariant(r, c) {
+    return (r % 2) * 15 + (c % 2); // cycles through 0, 1, 15, 16
+  }
+
+  // Asset paths
+  const KN_PATH  = 'assets/knight/FreeKnight_v1/Colour1/Outline/120x80_PNGSheets/';
+  const SK_PATH  = 'assets/enemies/Skeleton Sprite Pack/Skeleton/Sprite Sheets/';
+  const GOB_PATH = 'assets/enemies/Monster_Creatures_Fantasy(Version 1.2)/Monster_Creatures_Fantasy(Version 1.2)/Goblin/';
+  const TILE_PATH = 'assets/titles/Dungeon Tile Set/Dungeon Tile Set/Dungeon Tile Set.png';
+
+  // Enemy spawn definitions [type, logicalCol]
+  const ENEMY_DEFS = [
+    { type: 'skeleton', col: 25 },
+    { type: 'goblin',   col: 50 },
+    { type: 'skeleton', col: 75 },
+    { type: 'goblin',   col: 100 },
+    { type: 'skeleton', col: 130 },
+  ];
+
+  // Door logical column
+  const DOOR_COL = 147;
+
+  // ===================== LEVEL DATA =====================
+  function generateLevelData() {
+    const data = [];
+    for (let r = 0; r < LEVEL_ROWS; r++) {
+      data[r] = [];
+      for (let c = 0; c < LEVEL_COLS; c++) {
+        data[r][c] = -1;
+      }
+    }
+
+    const TILE_SURFACE = 2;
+    const TILE_FILL = 17;
+    const TILE_PLATFORM = 61;
+
+    for (let c = 0; c < LEVEL_COLS; c++) {
+      // Ceiling (rows 0–1)
+      data[0][c] = TILE_FILL;
+      data[1][c] = TILE_FILL;
+
+      // Floor surface (row 12) — gap at cols 69–72
+      if (c < 69 || c > 72) {
+        data[FLOOR_ROW][c] = TILE_SURFACE;
+      }
+
+      // Underground fill (rows 13–14)
+      if (c < 69 || c > 72) {
+        data[13][c] = TILE_FILL;
+        data[14][c] = TILE_FILL;
+      } else {
+        // Safety floor at bottom of gap
+        data[14][c] = TILE_FILL;
+      }
+    }
+
+    // Platform 1 — row 10, cols 38–45
+    for (let c = 38; c <= 45; c++) data[10][c] = TILE_PLATFORM;
+    // Platform 2 — row 10, cols 95–102
+    for (let c = 95; c <= 102; c++) data[10][c] = TILE_PLATFORM;
+
+    // Left & right walls
+    for (let r = 0; r < LEVEL_ROWS; r++) {
+      data[r][0] = TILE_FILL;
+      data[r][LEVEL_COLS - 1] = TILE_FILL;
+    }
+
+    return data;
+  }
+
+  // ===================== BOOT SCENE =====================
+  class BootScene extends Phaser.Scene {
+    constructor() { super('BootScene'); }
+
+    preload() {
+      // Progress bar
+      this.load.on('progress', (v) => {
+        const fill = document.getElementById('loading-bar-fill');
+        if (fill) fill.style.width = (v * 100) + '%';
+      });
+
+      // Dungeon tileset
+      this.load.image('dungeon_tiles', TILE_PATH);
+
+      // Knight spritesheets (120×80 frames)
+      this.load.spritesheet('kn_idle',    KN_PATH + '_Idle.png',    { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_run',     KN_PATH + '_Run.png',     { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_jump',    KN_PATH + '_Jump.png',    { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_fall',    KN_PATH + '_Fall.png',    { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_attack',  KN_PATH + '_Attack.png',  { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_attack2', KN_PATH + '_Attack2.png', { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_hit',     KN_PATH + '_Hit.png',     { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_death',   KN_PATH + '_Death.png',   { frameWidth: KN_FW, frameHeight: KN_FH });
+
+      // Skeleton spritesheets (variable frame sizes)
+      this.load.spritesheet('sk_idle',   SK_PATH + 'Skeleton Idle.png',   { frameWidth: 24, frameHeight: 32 });
+      this.load.spritesheet('sk_walk',   SK_PATH + 'Skeleton Walk.png',   { frameWidth: 22, frameHeight: 33 });
+      this.load.spritesheet('sk_attack', SK_PATH + 'Skeleton Attack.png', { frameWidth: 43, frameHeight: 37 });
+      this.load.spritesheet('sk_hit',    SK_PATH + 'Skeleton Hit.png',    { frameWidth: 30, frameHeight: 32 });
+      this.load.spritesheet('sk_dead',   SK_PATH + 'Skeleton Dead.png',   { frameWidth: 33, frameHeight: 32 });
+
+      // Goblin spritesheet (only Attack2 available)
+      this.load.spritesheet('gob_attack', GOB_PATH + 'Attack2.png', { frameWidth: 150, frameHeight: 150 });
+    }
+
+    create() {
+      // Hide loading screen, show HUD
+      const ls = document.getElementById('loading-screen');
+      ls.classList.add('fade-out');
+      setTimeout(() => { ls.style.display = 'none'; }, 500);
+      document.getElementById('game-hud').style.display = 'flex';
+
+      this.scene.start('GameScene');
+    }
+  }
+
+  // ===================== GAME SCENE =====================
+  class GameScene extends Phaser.Scene {
+    constructor() { super('GameScene'); }
+
+    create() {
+      // ---------- State ----------
+      this.vigil = getVigil();
+      this.vigil.valentry.started = true;
+      saveVigil(this.vigil);
+
+      this.defeatedEnemies = 0;
+      this.defeatedIds = new Set();
+      this.isAttacking = false;
+      this.attackOnCooldown = false;
+      this.isInvulnerable = false;
+      this.isHurt = false;
+      this.isDead = false;
+      this.isVictory = false;
+      this.currentAttackHits = new Set();
+      this.gateMessageTimer = null;
+
+      // ---------- Build world ----------
+      this.createLevel();
+      this.createDoor();
+      this.createKnight();
+      this.createAnimations();
+      this.createEnemies();
+
+      // ---------- Camera ----------
+      this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
+      this.cameras.main.startFollow(this.knight, true, 0.08, 0.08);
+      this.cameras.main.setBackgroundColor('#0a0a12');
+
+      // ---------- Input ----------
+      this.cursors = this.input.keyboard.createCursorKeys();
+      this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+      this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+      this.keyZ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+      this.keyJ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J);
+
+      // ---------- Collisions ----------
+      this.physics.add.collider(this.knight, this.groundLayer);
+      this.physics.add.collider(this.enemyGroup, this.groundLayer);
+      this.physics.add.overlap(this.knight, this.enemyGroup, this.onEnemyContact, null, this);
+      this.physics.add.overlap(this.knight, this.doorZone, this.onDoorReached, null, this);
+
+      // ---------- World bounds ----------
+      this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
+
+      this.updateHUD();
+    }
+
+    // ---------- LEVEL ----------
+    createLevel() {
+      const levelData = generateLevelData();
+      const map = this.make.tilemap({
+        data: levelData,
+        tileWidth: TILE_NATIVE,
+        tileHeight: TILE_NATIVE
+      });
+      const tileset = map.addTilesetImage('dungeon_tiles', 'dungeon_tiles', TILE_NATIVE, TILE_NATIVE, 0, 0);
+      this.groundLayer = map.createLayer(0, tileset, 0, 0);
+      this.groundLayer.setScale(TILE_SCALE);
+      this.groundLayer.setCollisionByExclusion([-1]);
+    }
+
+    // ---------- DOOR / GATE ----------
+    createDoor() {
+      const dx = DOOR_COL * TILE_SIZE + TILE_SIZE / 2;
+      const dy = FLOOR_Y;
+
+      // Visual gate
+      const gfx = this.add.graphics();
+      // Dark panel
+      gfx.fillStyle(0x0f0f1a, 0.9);
+      gfx.fillRect(dx - 22, dy - 72, 44, 72);
+      // Gold border
+      gfx.lineStyle(2, 0xc9a84c, 1);
+      gfx.strokeRect(dx - 22, dy - 72, 44, 72);
+      // Vertical bars
+      gfx.lineStyle(1, 0x7a6230, 0.7);
+      for (let i = -14; i <= 14; i += 7) {
+        gfx.lineBetween(dx + i, dy - 68, dx + i, dy - 4);
+      }
+      // Arch
+      gfx.lineStyle(2, 0xc9a84c, 1);
+      gfx.beginPath();
+      gfx.arc(dx, dy - 68, 22, Math.PI, 0, false);
+      gfx.strokePath();
+
+      this.doorGfx = gfx;
+
+      // Overlap zone
+      this.doorZone = this.add.zone(dx, dy - 36, 44, 72);
+      this.physics.add.existing(this.doorZone, true);
+    }
+
+    // ---------- KNIGHT ----------
+    createKnight() {
+      const startX = 3 * TILE_SIZE + TILE_SIZE / 2;
+      const startY = FLOOR_Y - KN_FH / 2;
+
+      this.knight = this.physics.add.sprite(startX, startY, 'kn_idle');
+      this.knight.body.setSize(KN_BODY_W, KN_BODY_H);
+      this.knight.body.setOffset(KN_BODY_OX, KN_BODY_OY);
+      this.knight.body.setMaxVelocity(KN_MAX_SPEED, 800);
+      this.knight.body.setDragX(KN_DRAG);
+      this.knight.body.setGravityY(KN_GRAVITY - 800); // add on top of world gravity
+      this.knight.setCollideWorldBounds(true);
+      this.knight.setDepth(10);
+    }
+
+    // ---------- ANIMATIONS ----------
+    createAnimations() {
+      // Knight
+      this.anims.create({ key: 'kn_idle',   frames: this.anims.generateFrameNumbers('kn_idle',   { start: 0, end: 9 }),  frameRate: 10, repeat: -1 });
+      this.anims.create({ key: 'kn_run',    frames: this.anims.generateFrameNumbers('kn_run',    { start: 0, end: 9 }),  frameRate: 12, repeat: -1 });
+      this.anims.create({ key: 'kn_jump',   frames: this.anims.generateFrameNumbers('kn_jump',   { start: 0, end: 2 }),  frameRate: 8,  repeat: 0 });
+      this.anims.create({ key: 'kn_fall',   frames: this.anims.generateFrameNumbers('kn_fall',   { start: 0, end: 2 }),  frameRate: 8,  repeat: 0 });
+      this.anims.create({ key: 'kn_attack', frames: this.anims.generateFrameNumbers('kn_attack', { start: 0, end: 3 }),  frameRate: 14, repeat: 0 });
+      this.anims.create({ key: 'kn_hit',    frames: this.anims.generateFrameNumbers('kn_hit',    { start: 0, end: 0 }),  frameRate: 10, repeat: 0 });
+      this.anims.create({ key: 'kn_death',  frames: this.anims.generateFrameNumbers('kn_death',  { start: 0, end: 9 }),  frameRate: 10, repeat: 0 });
+
+      // Skeleton
+      this.anims.create({ key: 'sk_idle',   frames: this.anims.generateFrameNumbers('sk_idle',   { start: 0, end: 10 }), frameRate: 10, repeat: -1 });
+      this.anims.create({ key: 'sk_walk',   frames: this.anims.generateFrameNumbers('sk_walk',   { start: 0, end: 12 }), frameRate: 12, repeat: -1 });
+      this.anims.create({ key: 'sk_attack', frames: this.anims.generateFrameNumbers('sk_attack', { start: 0, end: 17 }), frameRate: 14, repeat: 0 });
+      this.anims.create({ key: 'sk_hit',    frames: this.anims.generateFrameNumbers('sk_hit',    { start: 0, end: 7 }),  frameRate: 12, repeat: 0 });
+      this.anims.create({ key: 'sk_dead',   frames: this.anims.generateFrameNumbers('sk_dead',   { start: 0, end: 14 }), frameRate: 10, repeat: 0 });
+
+      // Goblin (only Attack2 — used as patrol loop)
+      this.anims.create({ key: 'gob_patrol', frames: this.anims.generateFrameNumbers('gob_attack', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
+    }
+
+    // ---------- ENEMIES ----------
+    createEnemies() {
+      this.enemyGroup = this.physics.add.group();
+      this.enemies = [];
+
+      ENEMY_DEFS.forEach((def, idx) => {
+        const ex = def.col * TILE_SIZE + TILE_SIZE / 2;
+        const ey = FLOOR_Y - 40; // spawn above floor, gravity settles them
+
+        let enemy;
+        if (def.type === 'skeleton') {
+          enemy = this.enemyGroup.create(ex, ey, 'sk_idle');
+          enemy.setScale(SKEL_SCALE);
+          enemy.body.setSize(18, 28);
+          enemy.body.setOffset(3, 2);
+          enemy.setData('speed', SKEL_SPEED);
+          enemy.setData('maxHp', SKEL_HP);
+          enemy.setData('hp', SKEL_HP);
+        } else {
+          enemy = this.enemyGroup.create(ex, ey, 'gob_attack');
+          enemy.setScale(GOBLIN_SCALE);
+          enemy.body.setSize(50, 60);
+          enemy.body.setOffset(50, 70);
+          enemy.setData('speed', GOBLIN_SPEED);
+          enemy.setData('maxHp', GOBLIN_HP);
+          enemy.setData('hp', GOBLIN_HP);
+        }
+
+        enemy.setData('type', def.type);
+        enemy.setData('id', idx);
+        enemy.setData('spawnX', ex);
+        enemy.setData('patrolDir', 1);
+        enemy.setData('isDead', false);
+        enemy.setData('isHurt', false);
+        enemy.body.setCollideWorldBounds(true);
+        enemy.setDepth(8);
+
+        this.enemies.push(enemy);
+      });
+    }
+
+    // ===================== UPDATE LOOP =====================
+    update(time, delta) {
+      if (this.isVictory) return;
+
+      if (this.isDead) {
+        // Wait for death anim then respawn
+        return;
+      }
+
+      this.handleMovement();
+      this.handleAttack();
+      this.updateKnightAnim();
+      this.updateEnemies();
+      this.checkFallRecovery();
+      this.updateHUD();
+    }
+
+    // ---------- MOVEMENT ----------
+    handleMovement() {
+      if (this.isAttacking || this.isHurt) return;
+
+      const left  = this.cursors.left.isDown  || this.keyA.isDown;
+      const right = this.cursors.right.isDown || this.keyD.isDown;
+      const jump  = Phaser.Input.Keyboard.JustDown(this.cursors.up) ||
+                    Phaser.Input.Keyboard.JustDown(this.cursors.space);
+
+      if (left) {
+        this.knight.body.setAccelerationX(-KN_ACCEL);
+        this.knight.setFlipX(true);
+      } else if (right) {
+        this.knight.body.setAccelerationX(KN_ACCEL);
+        this.knight.setFlipX(false);
+      } else {
+        this.knight.body.setAccelerationX(0);
+      }
+
+      if (jump && this.knight.body.onFloor()) {
+        this.knight.body.setVelocityY(KN_JUMP_VEL);
+      }
+    }
+
+    // ---------- ATTACK ----------
+    handleAttack() {
+      const attackPressed = Phaser.Input.Keyboard.JustDown(this.keyZ) ||
+                            Phaser.Input.Keyboard.JustDown(this.keyJ);
+
+      if (attackPressed && !this.isAttacking && !this.attackOnCooldown && !this.isHurt) {
+        this.isAttacking = true;
+        this.currentAttackHits = new Set();
+        this.knight.body.setAccelerationX(0);
+
+        this.knight.play('kn_attack', true);
+        this.knight.once('animationcomplete-kn_attack', () => {
+          this.isAttacking = false;
+          this.attackOnCooldown = true;
+          this.time.delayedCall(ATTACK_CD_MS, () => { this.attackOnCooldown = false; });
+        });
+      }
+
+      // Check hit during attack frames
+      if (this.isAttacking) {
+        const frame = this.knight.anims.currentFrame;
+        if (frame && frame.index >= 1 && frame.index <= 3) {
+          this.checkAttackHits();
+        }
+      }
+    }
+
+    checkAttackHits() {
+      const facing = this.knight.flipX ? -1 : 1;
+      this.enemies.forEach(enemy => {
+        if (!enemy.active || enemy.getData('isDead') || enemy.getData('isHurt')) return;
+        if (this.currentAttackHits.has(enemy.getData('id'))) return;
+
+        const dx = enemy.x - this.knight.x;
+        const dy = Math.abs(enemy.y - this.knight.y);
+
+        if (Math.sign(dx) === facing && Math.abs(dx) < ATTACK_RANGE_X && dy < ATTACK_RANGE_Y) {
+          this.currentAttackHits.add(enemy.getData('id'));
+          this.damageEnemy(enemy);
+        }
+      });
+    }
+
+    // ---------- KNIGHT ANIMATION ----------
+    updateKnightAnim() {
+      if (this.isDead || this.isHurt) return;
+      if (this.isAttacking) return; // attack anim is playing
+
+      if (!this.knight.body.onFloor()) {
+        if (this.knight.body.velocity.y < 0) {
+          this.knight.play('kn_jump', true);
+        } else {
+          this.knight.play('kn_fall', true);
+        }
+      } else if (Math.abs(this.knight.body.velocity.x) > 20) {
+        this.knight.play('kn_run', true);
+      } else {
+        this.knight.play('kn_idle', true);
+      }
+    }
+
+    // ---------- ENEMY AI ----------
+    updateEnemies() {
+      this.enemies.forEach(enemy => {
+        if (!enemy.active || enemy.getData('isDead') || enemy.getData('isHurt')) return;
+
+        const spawnX = enemy.getData('spawnX');
+        let dir = enemy.getData('patrolDir');
+
+        // Reverse at patrol boundaries
+        if (enemy.x > spawnX + PATROL_RANGE) {
+          dir = -1;
+          enemy.setData('patrolDir', dir);
+        } else if (enemy.x < spawnX - PATROL_RANGE) {
+          dir = 1;
+          enemy.setData('patrolDir', dir);
+        }
+
+        enemy.body.setVelocityX(enemy.getData('speed') * dir);
+        enemy.setFlipX(dir < 0);
+
+        // Play walk/patrol anim
+        const type = enemy.getData('type');
+        if (type === 'skeleton') {
+          enemy.play('sk_walk', true);
+        } else {
+          enemy.play('gob_patrol', true);
+        }
+      });
+    }
+
+    // ---------- DAMAGE ----------
+    damageEnemy(enemy) {
+      let hp = enemy.getData('hp') - 1;
+      enemy.setData('hp', hp);
+      enemy.setData('isHurt', true);
+      enemy.body.setVelocityX(0);
+
+      if (hp <= 0) {
+        this.killEnemy(enemy);
+        return;
+      }
+
+      // Hurt flash
+      const type = enemy.getData('type');
+      if (type === 'skeleton') {
+        enemy.play('sk_hit', true);
+        enemy.once('animationcomplete-sk_hit', () => {
+          enemy.setData('isHurt', false);
+        });
+      } else {
+        // Goblin has no hurt anim — tint flash
+        enemy.setTint(0xff4444);
+        this.time.delayedCall(200, () => {
+          enemy.clearTint();
+          enemy.setData('isHurt', false);
+        });
+      }
+    }
+
+    killEnemy(enemy) {
+      enemy.setData('isDead', true);
+      enemy.body.setVelocityX(0);
+      enemy.body.setAllowGravity(false);
+      enemy.body.enable = false;
+
+      this.defeatedEnemies++;
+      this.defeatedIds.add(enemy.getData('id'));
+
+      const type = enemy.getData('type');
+      if (type === 'skeleton') {
+        enemy.play('sk_dead', true);
+        enemy.once('animationcomplete-sk_dead', () => {
+          this.tweens.add({
+            targets: enemy,
+            alpha: 0,
+            duration: 400,
+            onComplete: () => { enemy.destroy(); }
+          });
+        });
+      } else {
+        // Goblin: tint + fade
+        enemy.setTint(0xff2222);
+        this.tweens.add({
+          targets: enemy,
+          alpha: 0,
+          scaleX: 0.3,
+          scaleY: 0.3,
+          duration: 500,
+          onComplete: () => { enemy.destroy(); }
+        });
+      }
+    }
+
+    // ---------- ENEMY → KNIGHT CONTACT ----------
+    onEnemyContact(knight, enemy) {
+      if (this.isInvulnerable || this.isDead || this.isVictory) return;
+      if (enemy.getData('isDead')) return;
+
+      // If knight is attacking toward this enemy, no contact damage
+      if (this.isAttacking) {
+        const dx = enemy.x - knight.x;
+        const facing = knight.flipX ? -1 : 1;
+        if (Math.sign(dx) === facing) return;
+      }
+
+      this.damageKnight(enemy);
+    }
+
+    damageKnight(enemySource) {
+      if (this.isInvulnerable || this.isDead) return;
+
+      this.vigil.hp -= DMG_FROM_ENEMY;
+      if (this.vigil.hp < 0) this.vigil.hp = 0;
+      saveVigil(this.vigil);
+
+      if (this.vigil.hp <= 0) {
+        this.knightDeath();
+        return;
+      }
+
+      // Hurt state
+      this.isHurt = true;
+      this.isInvulnerable = true;
+      this.isAttacking = false;
+
+      this.knight.play('kn_hit', true);
+
+      // Knockback away from enemy
+      if (enemySource) {
+        const dir = this.knight.x < enemySource.x ? -1 : 1;
+        this.knight.body.setVelocityX(dir * 200);
+        this.knight.body.setVelocityY(-180);
+      }
+
+      // Invulnerability flash
+      this.tweens.add({
+        targets: this.knight,
+        alpha: { from: 0.3, to: 1 },
+        duration: 80,
+        repeat: 5,
+        onComplete: () => {
+          this.knight.alpha = 1;
+          this.isHurt = false;
+        }
+      });
+
+      this.time.delayedCall(INVULN_MS, () => {
+        this.isInvulnerable = false;
+        this.knight.alpha = 1;
+      });
+
+      // Death flash effect
+      const df = document.getElementById('death-flash');
+      df.style.display = 'block';
+      df.style.animation = 'none';
+      void df.offsetHeight; // force reflow
+      df.style.animation = 'death-flash-anim 0.6s ease forwards';
+      setTimeout(() => { df.style.display = 'none'; }, 600);
+    }
+
+    // ---------- DEATH & RESPAWN ----------
+    knightDeath() {
+      this.isDead = true;
+      this.isAttacking = false;
+      this.knight.body.setVelocityX(0);
+
+      this.knight.play('kn_death', true);
+      this.knight.once('animationcomplete-kn_death', () => {
+        this.time.delayedCall(600, () => {
+          this.respawnKnight();
+        });
+      });
+    }
+
+    respawnKnight() {
+      // Restore 50% HP
+      this.vigil.hp = Math.floor(this.vigil.maxHp * 0.5);
+      saveVigil(this.vigil);
+
+      // Reset position
+      const startX = 3 * TILE_SIZE + TILE_SIZE / 2;
+      const startY = FLOOR_Y - KN_FH;
+      this.knight.setPosition(startX, startY);
+      this.knight.body.setVelocity(0, 0);
+      this.knight.alpha = 1;
+      this.knight.play('kn_idle', true);
+
+      // Reset state
+      this.isDead = false;
+      this.isHurt = false;
+      this.isInvulnerable = true;
+      this.isAttacking = false;
+
+      // Brief invulnerability after respawn
+      this.tweens.add({
+        targets: this.knight,
+        alpha: { from: 0.4, to: 1 },
+        duration: 150,
+        repeat: 6,
+        onComplete: () => { this.knight.alpha = 1; }
+      });
+      this.time.delayedCall(1200, () => {
+        this.isInvulnerable = false;
+      });
+
+      this.updateHUD();
+    }
+
+    // ---------- FALL RECOVERY ----------
+    checkFallRecovery() {
+      // If knight falls into the gap and lands on the safety floor (row 14)
+      // below the main floor, teleport them back to just before the gap
+      if (this.knight.y > (FLOOR_ROW + 1) * TILE_SIZE && this.knight.body.onFloor()) {
+        // Landed below main floor — nudge back up
+        const safeX = 67 * TILE_SIZE + TILE_SIZE / 2; // just before the gap
+        this.knight.setPosition(safeX, FLOOR_Y - KN_FH);
+        this.knight.body.setVelocity(0, 0);
+      }
+    }
+
+    // ---------- DOOR ----------
+    onDoorReached(knight, zone) {
+      if (this.isVictory || this.isDead) return;
+
+      if (this.defeatedEnemies < TOTAL_ENEMIES) {
+        // Gate is locked
+        const msg = document.getElementById('gate-locked-msg');
+        msg.classList.add('show');
+        if (this.gateMessageTimer) clearTimeout(this.gateMessageTimer);
+        this.gateMessageTimer = setTimeout(() => { msg.classList.remove('show'); }, 1500);
+        return;
+      }
+
+      this.triggerVictory();
+    }
+
+    // ---------- VICTORY ----------
+    triggerVictory() {
+      this.isVictory = true;
+      this.knight.body.setVelocity(0, 0);
+      this.knight.body.setAccelerationX(0);
+      this.knight.play('kn_idle', true);
+      this.scene.pause();
+
+      // Update vigil
+      const vigil = getVigil();
+      const alreadyCompleted = vigil.valentry.completed;
+      vigil.valentry.completed = true;
+
+      if (!vigil.inventory.includes('the_vale_compass')) {
+        vigil.inventory.push('the_vale_compass');
+      }
+      if (!vigil.questsCompleted.includes('valentry_descent')) {
+        vigil.questsCompleted.push('valentry_descent');
+      }
+
+      vigil.valentry.encounterLog.push({
+        timestamp: new Date().toISOString(),
+        result: 'victory',
+        replay: alreadyCompleted
+      });
+
+      saveVigil(vigil);
+
+      // Adjust text for replays
+      if (alreadyCompleted) {
+        document.getElementById('victory-item-text').textContent = 'THE VALE COMPASS is already in your inventory.';
+      }
+
+      // Show overlay
+      document.getElementById('victory-overlay').style.display = 'flex';
+    }
+
+    // ---------- HUD ----------
+    updateHUD() {
+      const hpPct = (this.vigil.hp / this.vigil.maxHp) * 100;
+      document.getElementById('hp-fill').style.width = hpPct + '%';
+      document.getElementById('hp-text').textContent = this.vigil.hp + ' / ' + this.vigil.maxHp;
+
+      const remaining = TOTAL_ENEMIES - this.defeatedEnemies;
+      document.getElementById('enemy-counter').textContent = 'FOES: ' + remaining;
+    }
+  }
+
+  // ===================== GAME CONFIG =====================
+  const config = {
+    type: Phaser.AUTO,
+    parent: 'game-container',
+    width: CANVAS_W,
+    height: CANVAS_H,
+    pixelArt: true,
+    physics: {
+      default: 'arcade',
+      arcade: {
+        gravity: { y: 800 },
+        debug: false
+      }
+    },
+    scene: [BootScene, GameScene],
+    audio: { noAudio: true }
+  };
+
+  const game = new Phaser.Game(config);
+  </script>
+</body>
+</html>

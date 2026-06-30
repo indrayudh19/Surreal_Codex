@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { background: #333; color: white; font-family: monospace; }
+    .container { display: flex; flex-wrap: wrap; width: 800px; }
+    .tile-wrap { margin: 2px; text-align: center; font-size: 10px; }
+    .tile { width: 32px; height: 32px; image-rendering: pixelated; }
+  </style>
+</head>
+<body>
+  <div class="container" id="grid"></div>
+  <script>
+    const grid = document.getElementById('grid');
+    for (let i = 0; i < 15 * 18; i++) {
+      const x = (i % 15) * 16;
+      const y = Math.floor(i / 15) * 16;
+      grid.innerHTML += `<div class="tile-wrap">
+        <div class="tile" style="background: url('assets/titles/Dungeon Tile Set/Dungeon Tile Set/Dungeon Tile Set.png') -${x*2}px -${y*2}px; background-size: 480px 576px;"></div>
+        ${i}
+      </div>`;
+    }
+  </script>
+</body>
+</html>
