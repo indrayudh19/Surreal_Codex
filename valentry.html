@@ -521,37 +521,46 @@
     constructor() { super('BootScene'); }
 
     preload() {
-      // Progress bar
-      this.load.on('progress', (v) => {
-        const fill = document.getElementById('loading-bar-fill');
-        if (fill) fill.style.width = (v * 100) + '%';
-      });
-
-      // Dungeon tileset
-      this.load.image('dungeon_tiles', BASE64_ASSETS['dungeon_tiles']);
-
-      // Knight spritesheets (120×80 frames)
-      this.load.spritesheet('kn_idle',    BASE64_ASSETS['kn_idle'],    { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_run',     BASE64_ASSETS['kn_run'],     { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_jump',    BASE64_ASSETS['kn_jump'],    { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_fall',    BASE64_ASSETS['kn_fall'],    { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_attack',  BASE64_ASSETS['kn_attack'],  { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_attack2', BASE64_ASSETS['kn_attack2'], { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_hit',     BASE64_ASSETS['kn_hit'],     { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_death',   BASE64_ASSETS['kn_death'],   { frameWidth: KN_FW, frameHeight: KN_FH });
-
-      // Skeleton spritesheets (variable frame sizes)
-      this.load.spritesheet('sk_idle',   BASE64_ASSETS['sk_idle'],   { frameWidth: 24, frameHeight: 32 });
-      this.load.spritesheet('sk_walk',   BASE64_ASSETS['sk_walk'],   { frameWidth: 22, frameHeight: 33 });
-      this.load.spritesheet('sk_attack', BASE64_ASSETS['sk_attack'], { frameWidth: 43, frameHeight: 37 });
-      this.load.spritesheet('sk_hit',    BASE64_ASSETS['sk_hit'],    { frameWidth: 30, frameHeight: 32 });
-      this.load.spritesheet('sk_dead',   BASE64_ASSETS['sk_dead'],   { frameWidth: 33, frameHeight: 32 });
-
-      // Goblin spritesheet (only Attack2 available)
-      this.load.spritesheet('gob_attack', BASE64_ASSETS['gob_attack'], { frameWidth: 150, frameHeight: 150 });
+      // We do not use this.load because it explicitly blocks local data URIs
     }
 
     create() {
+      let loaded = 0;
+      const keys = Object.keys(BASE64_ASSETS);
+      
+      keys.forEach(key => {
+        const img = new Image();
+        img.onload = () => {
+          if (key === 'dungeon_tiles') {
+            this.textures.addImage(key, img);
+          } else {
+            let fw = 0, fh = 0;
+            if (key.startsWith('kn_')) { fw = KN_FW; fh = KN_FH; }
+            else if (key === 'sk_idle') { fw = 24; fh = 32; }
+            else if (key === 'sk_walk') { fw = 22; fh = 33; }
+            else if (key === 'sk_attack') { fw = 43; fh = 37; }
+            else if (key === 'sk_hit') { fw = 30; fh = 32; }
+            else if (key === 'sk_dead') { fw = 33; fh = 32; }
+            else if (key === 'gob_attack') { fw = 150; fh = 150; }
+            
+            this.textures.addSpriteSheet(key, img, { frameWidth: fw, frameHeight: fh });
+          }
+          
+          loaded++;
+          
+          // Update progress manually
+          const fill = document.getElementById('loading-bar-fill');
+          if (fill) fill.style.width = (loaded / keys.length * 100) + '%';
+          
+          if (loaded === keys.length) {
+            this.startGame();
+          }
+        };
+        img.src = BASE64_ASSETS[key];
+      });
+    }
+
+    startGame() {
       // Hide loading screen, show HUD
       const ls = document.getElementById('loading-screen');
       ls.classList.add('fade-out');
