@@ -14,28 +14,28 @@
        CSS VARIABLES & RESETS
        ======================================== */
     :root {
-      --void:          #050508;
-      --deep:          #0a0a12;
-      --surface:       #0f0f1a;
-      --surface-raise: #141420;
-      --border:        #1e1e35;
-      --border-glow:   #2a2a55;
+      --void:          #080012;
+      --deep:          #140028;
+      --surface:       #20003e;
+      --surface-raise: #2c0054;
+      --border:        #48008c;
+      --border-glow:   #6800c4;
 
-      --moon-silver:   #c8cfe8;
-      --moon-dim:      #7a82a8;
-      --moon-ghost:    #3a4060;
+      --moon-silver:   #ffffff;
+      --moon-dim:      #e0b3ff;
+      --moon-ghost:    #c480ff;
 
-      --gold:          #c9a84c;
-      --gold-dim:      #7a6230;
-      --crimson:       #8b1a1a;
-      --crimson-glow:  #c02020;
+      --gold:          #ffffff;
+      --gold-dim:      #a233ff;
+      --crimson:       #8a00e6;
+      --crimson-glow:  #a64dff;
 
-      --arcade-green:  #1aff6e;
-      --arcade-blue:   #4ab3ff;
+      --arcade-green:  #ffffff;
+      --arcade-blue:   #ffffff;
 
-      --glow-moon:  0 0 12px rgba(200, 207, 232, 0.15), 0 0 30px rgba(200, 207, 232, 0.06);
-      --glow-gold:  0 0 10px rgba(201, 168, 76, 0.3),  0 0 24px rgba(201, 168, 76, 0.1);
-      --glow-green: 0 0 8px  rgba(26, 255, 110, 0.4);
+      --glow-moon:  0 0 12px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 255, 255, 0.1);
+      --glow-gold:  0 0 10px rgba(255, 255, 255, 0.5), 0 0 24px rgba(255, 255, 255, 0.2);
+      --glow-green: 0 0 8px  rgba(255, 255, 255, 0.4);
     }
 
     *, *::before, *::after {
@@ -52,11 +52,12 @@
     body {
       background: var(--deep);
       color: var(--moon-silver);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 13px;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
       line-height: 1.6;
       overflow-x: hidden;
       min-height: 100vh;
+      text-shadow: 1px 1px 0px var(--border);
     }
 
     /* Custom scrollbar */
@@ -105,8 +106,8 @@
       opacity: 0;
     }
     #preloader-text {
-      font-family: 'Cinzel', serif;
-      font-size: 14px;
+      font-family: 'VT323', monospace;
+      font-size: 22px;
       color: var(--moon-ghost);
       letter-spacing: 0.2em;
       margin-bottom: 24px;
@@ -149,10 +150,10 @@
       gap: 10px;
     }
     .header-title {
-      font-family: 'Cinzel', serif;
-      font-size: 13px;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
       color: var(--gold);
-      letter-spacing: 0.3em;
+      letter-spacing: 0.1em;
       white-space: nowrap;
     }
 
@@ -190,12 +191,13 @@
     }
 
     .hero-headline {
-      font-family: 'Cinzel', serif;
-      font-size: clamp(28px, 4vw, 52px);
+      font-family: 'VT323', monospace;
+      font-size: clamp(36px, 6vw, 72px);
       color: var(--moon-silver);
-      letter-spacing: 0.25em;
+      letter-spacing: 0.1em;
       margin-bottom: 40px;
       line-height: 1.3;
+      text-shadow: 2px 2px 0px var(--border-glow);
     }
 
     .hero-buttons {
@@ -203,15 +205,16 @@
       justify-content: center;
     }
     .btn-primary {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 13px;
+      font-family: 'VT323', monospace;
+      font-size: 22px;
       padding: 12px 28px;
-      background: transparent;
+      background: var(--surface);
       cursor: pointer;
       transition: all 0.2s ease;
       letter-spacing: 0.1em;
-      border: 1px solid var(--gold);
+      border: 2px solid var(--gold);
       color: var(--gold);
+      box-shadow: 4px 4px 0px var(--border-glow);
     }
     .btn-primary:hover {
       background: rgba(201, 168, 76, 0.08);
@@ -240,10 +243,10 @@
       gap: 10px;
     }
     .footer-brand {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
       color: var(--moon-ghost);
-      letter-spacing: 0.3em;
+      letter-spacing: 0.1em;
     }
     .footer-center {
       font-family: 'VT323', monospace;
@@ -252,8 +255,8 @@
       text-align: center;
     }
     .footer-right {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
       color: var(--moon-ghost);
       text-align: right;
     }
@@ -333,10 +336,10 @@
       flex: 1;
       overflow-y: auto;
       padding: 20px 24px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 13px;
-      line-height: 1.7;
-      color: #1aff6e;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      line-height: 1.5;
+      color: var(--moon-dim);
     }
     .term-body::-webkit-scrollbar { width: 4px; }
     .term-body::-webkit-scrollbar-track { background: #000; }
@@ -376,9 +379,9 @@
       flex-shrink: 0;
     }
     .term-prompt {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 13px;
-      color: #1aff6e;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: var(--moon-dim);
       margin-right: 8px;
       user-select: none;
       white-space: nowrap;
@@ -387,12 +390,12 @@
       flex: 1;
       background: transparent;
       border: none;
-      border-bottom: 1px solid #1a2a1a;
-      color: #1aff6e;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 13px;
+      border-bottom: 1px solid var(--border-glow);
+      color: var(--moon-silver);
+      font-family: 'VT323', monospace;
+      font-size: 20px;
       outline: none;
-      caret-color: #1aff6e;
+      caret-color: var(--moon-silver);
       padding: 4px 0;
     }
     .term-input::placeholder {
