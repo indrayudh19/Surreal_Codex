@@ -373,6 +373,7 @@
 
   <!-- Scripts -->
   <script src="vigil.js"></script>
+  <script src="base64_assets.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <script>
   // ================================================================
@@ -394,11 +395,11 @@
   const KN_FW = 120, KN_FH = 80;
   const KN_BODY_W = 30, KN_BODY_H = 50;
   const KN_BODY_OX = 45, KN_BODY_OY = 26;
-  const KN_ACCEL = 600;
+  const KN_ACCEL = 1000;
   const KN_MAX_SPEED = 200;
-  const KN_DRAG = 800;
-  const KN_JUMP_VEL = -420;
-  const KN_GRAVITY = 900;
+  const KN_DRAG = 1200;
+  const KN_JUMP_VEL = -550;
+  const KN_GRAVITY = 1600;
   const ATTACK_CD_MS = 400;
   const INVULN_MS = 500;
   const DMG_FROM_ENEMY = 15;
@@ -442,6 +443,16 @@
   // Door logical column
   const DOOR_COL = 147;
 
+  const TILE_SURFACE = 1;
+  const TILE_FILL = 16;
+  const TILE_PLATFORM_L = 60;
+  const TILE_PLATFORM_M = 61;
+  const TILE_PLATFORM_R = 62;
+  const TILE_CRATE = 84;
+  const TILE_BARREL = 101;
+  const TILE_CHEST_CLOSED = 87;
+  const TILE_CHAIN = 106;
+
   // ===================== LEVEL DATA =====================
   function generateLevelData() {
     const data = [];
@@ -452,18 +463,28 @@
       }
     }
 
-    const TILE_SURFACE = 2;
-    const TILE_FILL = 17;
-    const TILE_PLATFORM = 61;
-
     for (let c = 0; c < LEVEL_COLS; c++) {
       // Ceiling (rows 0–1)
       data[0][c] = TILE_FILL;
       data[1][c] = TILE_FILL;
 
+      // Random chains from ceiling
+      if (c > 5 && c < LEVEL_COLS - 5 && Math.random() < 0.15) {
+        data[2][c] = TILE_CHAIN;
+        if (Math.random() < 0.5) data[3][c] = TILE_CHAIN;
+      }
+
       // Floor surface (row 12) — gap at cols 69–72
       if (c < 69 || c > 72) {
         data[FLOOR_ROW][c] = TILE_SURFACE;
+
+        // Background props on the floor
+        if (c > 5 && c < LEVEL_COLS - 5 && Math.random() < 0.1) {
+          const roll = Math.random();
+          if (roll < 0.4) data[FLOOR_ROW - 1][c] = TILE_CRATE;
+          else if (roll < 0.8) data[FLOOR_ROW - 1][c] = TILE_BARREL;
+          else data[FLOOR_ROW - 1][c] = TILE_CHEST_CLOSED;
+        }
       }
 
       // Underground fill (rows 13–14)
@@ -477,9 +498,14 @@
     }
 
     // Platform 1 — row 10, cols 38–45
-    for (let c = 38; c <= 45; c++) data[10][c] = TILE_PLATFORM;
+    data[10][38] = TILE_PLATFORM_L;
+    for (let c = 39; c <= 44; c++) data[10][c] = TILE_PLATFORM_M;
+    data[10][45] = TILE_PLATFORM_R;
+
     // Platform 2 — row 10, cols 95–102
-    for (let c = 95; c <= 102; c++) data[10][c] = TILE_PLATFORM;
+    data[10][95] = TILE_PLATFORM_L;
+    for (let c = 96; c <= 101; c++) data[10][c] = TILE_PLATFORM_M;
+    data[10][102] = TILE_PLATFORM_R;
 
     // Left & right walls
     for (let r = 0; r < LEVEL_ROWS; r++) {
@@ -502,27 +528,27 @@
       });
 
       // Dungeon tileset
-      this.load.image('dungeon_tiles', TILE_PATH);
+      this.load.image('dungeon_tiles', BASE64_ASSETS['dungeon_tiles']);
 
       // Knight spritesheets (120×80 frames)
-      this.load.spritesheet('kn_idle',    KN_PATH + '_Idle.png',    { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_run',     KN_PATH + '_Run.png',     { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_jump',    KN_PATH + '_Jump.png',    { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_fall',    KN_PATH + '_Fall.png',    { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_attack',  KN_PATH + '_Attack.png',  { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_attack2', KN_PATH + '_Attack2.png', { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_hit',     KN_PATH + '_Hit.png',     { frameWidth: KN_FW, frameHeight: KN_FH });
-      this.load.spritesheet('kn_death',   KN_PATH + '_Death.png',   { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_idle',    BASE64_ASSETS['kn_idle'],    { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_run',     BASE64_ASSETS['kn_run'],     { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_jump',    BASE64_ASSETS['kn_jump'],    { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_fall',    BASE64_ASSETS['kn_fall'],    { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_attack',  BASE64_ASSETS['kn_attack'],  { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_attack2', BASE64_ASSETS['kn_attack2'], { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_hit',     BASE64_ASSETS['kn_hit'],     { frameWidth: KN_FW, frameHeight: KN_FH });
+      this.load.spritesheet('kn_death',   BASE64_ASSETS['kn_death'],   { frameWidth: KN_FW, frameHeight: KN_FH });
 
       // Skeleton spritesheets (variable frame sizes)
-      this.load.spritesheet('sk_idle',   SK_PATH + 'Skeleton Idle.png',   { frameWidth: 24, frameHeight: 32 });
-      this.load.spritesheet('sk_walk',   SK_PATH + 'Skeleton Walk.png',   { frameWidth: 22, frameHeight: 33 });
-      this.load.spritesheet('sk_attack', SK_PATH + 'Skeleton Attack.png', { frameWidth: 43, frameHeight: 37 });
-      this.load.spritesheet('sk_hit',    SK_PATH + 'Skeleton Hit.png',    { frameWidth: 30, frameHeight: 32 });
-      this.load.spritesheet('sk_dead',   SK_PATH + 'Skeleton Dead.png',   { frameWidth: 33, frameHeight: 32 });
+      this.load.spritesheet('sk_idle',   BASE64_ASSETS['sk_idle'],   { frameWidth: 24, frameHeight: 32 });
+      this.load.spritesheet('sk_walk',   BASE64_ASSETS['sk_walk'],   { frameWidth: 22, frameHeight: 33 });
+      this.load.spritesheet('sk_attack', BASE64_ASSETS['sk_attack'], { frameWidth: 43, frameHeight: 37 });
+      this.load.spritesheet('sk_hit',    BASE64_ASSETS['sk_hit'],    { frameWidth: 30, frameHeight: 32 });
+      this.load.spritesheet('sk_dead',   BASE64_ASSETS['sk_dead'],   { frameWidth: 33, frameHeight: 32 });
 
       // Goblin spritesheet (only Attack2 available)
-      this.load.spritesheet('gob_attack', GOB_PATH + 'Attack2.png', { frameWidth: 150, frameHeight: 150 });
+      this.load.spritesheet('gob_attack', BASE64_ASSETS['gob_attack'], { frameWidth: 150, frameHeight: 150 });
     }
 
     create() {
@@ -599,7 +625,7 @@
       const tileset = map.addTilesetImage('dungeon_tiles', 'dungeon_tiles', TILE_NATIVE, TILE_NATIVE, 0, 0);
       this.groundLayer = map.createLayer(0, tileset, 0, 0);
       this.groundLayer.setScale(TILE_SCALE);
-      this.groundLayer.setCollisionByExclusion([-1]);
+      this.groundLayer.setCollision([TILE_SURFACE, TILE_FILL, TILE_PLATFORM_L, TILE_PLATFORM_M, TILE_PLATFORM_R]);
     }
 
     // ---------- DOOR / GATE ----------
@@ -1030,6 +1056,7 @@
         const safeX = 67 * TILE_SIZE + TILE_SIZE / 2; // just before the gap
         this.knight.setPosition(safeX, FLOOR_Y - KN_FH);
         this.knight.body.setVelocity(0, 0);
+        this.damageKnight();
       }
     }
 
@@ -1099,7 +1126,7 @@
 
   // ===================== GAME CONFIG =====================
   const config = {
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS,
     parent: 'game-container',
     width: CANVAS_W,
     height: CANVAS_H,
