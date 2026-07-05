@@ -434,9 +434,9 @@
   // Enemy spawn definitions [type, logicalCol]
   const ENEMY_DEFS = [
     { type: 'skeleton', col: 25 },
-    { type: 'goblin',   col: 50 },
+    { type: 'skeleton', col: 50 },
     { type: 'skeleton', col: 75 },
-    { type: 'goblin',   col: 100 },
+    { type: 'skeleton', col: 100 },
     { type: 'skeleton', col: 130 },
   ];
 
@@ -527,10 +527,12 @@
     create() {
       let loaded = 0;
       const keys = Object.keys(BASE64_ASSETS);
+      console.log('Total keys:', keys.length);
       
       keys.forEach(key => {
         const img = new Image();
         img.onload = () => {
+          console.log('Loaded:', key, loaded + 1, '/', keys.length);
           if (key === 'dungeon_tiles') {
             this.textures.addImage(key, img);
           } else {
@@ -543,7 +545,11 @@
             else if (key === 'sk_dead') { fw = 33; fh = 32; }
             else if (key === 'gob_attack') { fw = 150; fh = 150; }
             
-            this.textures.addSpriteSheet(key, img, { frameWidth: fw, frameHeight: fh });
+            if (fw > 0 && fh > 0) {
+              this.textures.addSpriteSheet(key, img, { frameWidth: fw, frameHeight: fh });
+            } else {
+              this.textures.addImage(key, img);
+            }
           }
           
           loaded++;
@@ -552,6 +558,13 @@
           const fill = document.getElementById('loading-bar-fill');
           if (fill) fill.style.width = (loaded / keys.length * 100) + '%';
           
+          if (loaded === keys.length) {
+            this.startGame();
+          }
+        };
+        img.onerror = () => {
+          console.error("Failed to load image for key:", key);
+          loaded++;
           if (loaded === keys.length) {
             this.startGame();
           }
